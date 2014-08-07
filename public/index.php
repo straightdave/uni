@@ -22,12 +22,12 @@ $resolver->addConnection('default', $conn);
 $resolver->setDefaultConnection('default');
 \Illuminate\Database\Eloquent\Model::setConnectionResolver($resolver);
 
-$app = new \Slim\Slim();
+$app = new \Slim\Slim(array(
+    'templates.path' => '../app/views/'
+));
 
-$app->get('/', function () {
-    echo "Homepage!";
-});
 
+require "../app/routes/home.php";
 require "../app/routes/book.php";
 
 $app->run();
