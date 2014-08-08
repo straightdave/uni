@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 require_once "../vendor/autoload.php";
 
@@ -26,8 +27,11 @@ $app = new \Slim\Slim(array(
     'templates.path' => '../app/views/'
 ));
 
+$app->get('/', function () {
+    echo "Homepage of this service. No real use.";
+});
 
-require "../app/routes/home.php";
+require "../app/routes/user_login.php";
 require "../app/routes/book.php";
 
 $app->run();
