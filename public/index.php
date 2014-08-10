@@ -32,6 +32,5 @@ $app->get('/', function () {
 });
 
 require "../app/routes/user_login.php";
-require "../app/routes/book.php";
 
 $app->run();
