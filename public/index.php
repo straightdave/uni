@@ -10,7 +10,7 @@ $settings = array(
     'database'  => 'uni_dev',
     'username'  => 'root',
     'password'  => '123123',
-    'collation' => 'utf8_general_ci',
+    'collation' => 'utf8_general_ci', 
     'charset'   => 'utf8',
     'prefix'    => ''
 );

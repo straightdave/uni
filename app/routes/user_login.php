@@ -7,7 +7,6 @@ $app->get('/login', function () use($app) {
     // Note: it needs GET params: ret - for return address;
     //       for purpose of ease, here it allows empty value
     //       which will returns it back to homepage
-    
     if( isset($_GET['ret']) )
         $ret_page = urldecode($_GET['ret']);
     else
@@ -26,7 +25,6 @@ $app->post('/login', function () use($app) {
         
         if($userlogin->password === md5($p . $userlogin->salt)) {
             // login succeeds
-            
             // clean dirty data
             $sessions = \UserSession::where('uid', '=', $userlogin->id)->delete();
             
@@ -36,8 +34,7 @@ $app->post('/login', function () use($app) {
             
             $now = new DateTime('now');
             $then = $now->add( new DateInterval('PT12H') );
-            
-            $sess->exp   = $then->format('Y-m-d H:i:s');
+            $sess->exp = $then->format('Y-m-d H:i:s');
             $sess->save();
             
             if( ! isset($_SESSION['ret']) )
@@ -46,7 +43,7 @@ $app->post('/login', function () use($app) {
                 $ret = $_SESSION['ret'];
                 
             echo "Welcome, $u. Redirecting to $ret";
-            $app->redirect($ret . '?t=' . $sess->token);
+            $app->redirect($ret . '?token=' . $sess->token);
         }else
             $app->render('login.php', array( 'errorMessage' => 'Login Failed!'));
     }catch(Exception $e){
@@ -86,10 +83,47 @@ $app->get('/logout', function() use($app) {
     }
 })->name('logout');
 
-$app->get('/validate/:token', function($token) use($app) {
+$app->get('/validate', function () use($app) {
     $app->response->headers->set('Content-Type', 'application/json');
-    if( \UserSession::where('token', '=', $token)->count() > 0 )
-        echo '{ "islogin" : true }';
-    else
-        echo '{ "islogin" : false }';
+    if( ! isset( $_GET['token'] ) )
+        echo '{ "status" : "none" }';
+    else{
+        $token = $_GET['token'];
+        $now   = new DateTime('now');
+        if( \UserSession::where('token', '=', $token)->count() > 0 ) {
+            $sess = \UserSession::where('token', '=', $token)->firstOrFail();
+            $exp = new DateTime($sess->exp);
+            if( $now > $exp ) {
+                $sess->delete();
+                echo '{ "status" : "expired" }';
+            }
+            else {
+                // If it will expire within 1 hour, extend 
+                // the expiration for another 12 hours               
+                $diff = $exp->diff($now);
+                if( $diff->h < 1 ) {
+                    $exp = $exp->add( new DateInterval('PT12H') );
+                    $sess->exp = $exp->format('Y-m-d H:i:s');
+                    $sess->save();
+                }
+                echo '{ "status" : "ok" }';
+            }
+        }
+        else
+            echo '{ "status" : "notlogin" }';
+    }
+});
+
+// for test purpose
+$app->get('/showsess', function () use($app) {
+    $app->response->headers->set('Content-Type', 'application/json');
+    $sess = \UserSession::all();
+    echo $sess->toJson();
+});
+
+// for test purpose
+$app->get('/showuser', function () use($app) {
+    $app->response->headers->set('Content-Type', 'application/json');
+    $users = \UserLogin::all();
+    echo $users->toJson();
 });
