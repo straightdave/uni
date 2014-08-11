@@ -78,7 +78,7 @@ $app->post('/new', function () use($app) {
 
 $app->get('/logout', function() use($app) {
     if( isset($_GET['token']) and isset($_GET['ret']) ){
-        $delcount = \UserSession::where('token', '=', $token)->delete();
+        $delcount = \UserSession::where('token', '=', $_GET['token'])->delete();
         $app->response->redirect($_GET['ret'],302);
     }
 })->name('logout');
