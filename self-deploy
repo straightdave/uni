@@ -1,9 +1,54 @@
-#! /bin/bash
+#!/bin/bash
+echo "Uni self-deploy"
+read -p "recreate database?" yn
+    case $yn in
+        [Yy]* )
+            read -p "MySQL account: " acct
+            read -s -p "MySQL password: " pass
+            restoreDB "uni" "db.sql"
+            ;;
+        [Nn]* )
+            ;;
+    esac
+
+createSite "/var/www/uni" "uni"
 
 # restore db
-mysql -u root -p123123 uni < db.sql
+restoreDB() {
+    dbname="$1"
+    dbdump="$2"
+     
+    res=`mysql -u $acct -p$pass -e "use $dbname"`
+
+    if [ -z "$res" ]; then
+        res=`mysql -u $acct -p$pass -e "drop database $dbname"`
+    fi
+    
+    mysql -u $acct -p$pass -e "create database $dbname"
+    mysql -u $acct -p$pass $dbname < $dbdump
+}
 
 # create website
-sudo cp uni /etc/apache2/sites-avaliable/uni
-sudo a2ensite uni
-sudo service apache2 reload
+createSite() {
+    siteroot="$1"
+    sitename="$2"
+    
+    if [ ! -d "${siteroot}" ]; then
+        mkdir $siteroot
+    fi
+    
+    now=`date +%Y%m%d%H%M%S`
+    mkdir ${siteroot}/${now}
+    cp ./. ${siteroot}/${now}/ -R -exclude='self-deploy' -exclude='*.conf' -exclude='composer*'
+    ln -fs ${siteroot}/$now ${siteroot}/curr
+        
+    if [ ! -f "/etc/apache2/sites-available/${sitename}.conf" ]; then
+        sed "s,{{DOCROOT}},${siteroot}/curr/public/,g" ./${sitename}.conf > ${sitename}-0.conf
+        cp ${sitename}-0.conf /etc/apache2/sites-avaliable/${sitename}.conf
+    fi
+    
+    if [ ! -f "/etc/apache2/sites-enabled/${sitename}.conf" ]; then
+        a2ensite $sitename
+        service apache2 reload
+    fi   
+}
