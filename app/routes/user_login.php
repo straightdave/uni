@@ -112,6 +112,7 @@ $app->get('/validate', function () use($app) {
         else
             echo '{ "status" : "notlogin" }';
     }
+    exit;
 });
 
 // for test purpose
