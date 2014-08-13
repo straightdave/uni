@@ -64,11 +64,11 @@ CREATE TABLE `user_session` (
 -- Dumping data for table `user_session`
 --
 
-LOCK TABLES `user_session` WRITE;
+-- LOCK TABLES `user_session` WRITE;
 /*!40000 ALTER TABLE `user_session` DISABLE KEYS */;
-INSERT INTO `user_session` VALUES (1,15,'adsfaefwer323','2014-08-29 11:11:11'),(15,17,'9124d1e77e8705a93b3b2add8713bb22','2014-08-11 22:06:37'),(16,5,'9d6d4db63ef1b048957bbcfcaabf17eb','2014-08-12 10:11:15');
+-- INSERT INTO `user_session` VALUES (1,15,'adsfaefwer323','2014-08-29 11:11:11'),(15,17,'9124d1e77e8705a93b3b2add8713bb22','2014-08-11 22:06:37'),(16,5,'9d6d4db63ef1b048957bbcfcaabf17eb','2014-08-12 10:11:15');
 /*!40000 ALTER TABLE `user_session` ENABLE KEYS */;
-UNLOCK TABLES;
+-- UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
