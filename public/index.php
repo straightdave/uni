@@ -10,7 +10,7 @@ $settings = array(
     'database'  => 'uni_dev',
     'username'  => 'root',
     'password'  => '123123',
-    'collation' => 'utf8_general_ci', 
+    'collation' => 'utf8_general_ci',
     'charset'   => 'utf8',
     'prefix'    => ''
 );
@@ -31,6 +31,6 @@ $app->get('/', function () {
     echo "Homepage of this service. No real use.";
 });
 
-require "../app/routes/user_login.php";
+require_once "../app/routes/user.php";
 
 $app->run();
