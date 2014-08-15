@@ -1,9 +1,9 @@
 <html>
 <head>
-<title>Log In!</title>
+<title>Log In</title>
 </head>
 <body>
-<h1>Log in please</h1>
+<h1>Log in here, take you everywhere</h1>
 <p><?php if( isset($errorMessage) ) {echo $errorMessage;} ?></p>
 <form method="post">
 Username: <input type="text" name="username" value="dave"> <br/>

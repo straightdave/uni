@@ -4,55 +4,56 @@ require_once '../app/models/UserLogin.php';
 require_once '../app/models/UserSession.php';
 
 $app->get('/login', function () use($app) {
-    // Note: it needs GET params: ret - for return address;
-    //       for purpose of ease, here it allows empty value
-    //       which will returns it back to homepage
-    if( isset($_GET['ret']) )
-        $ret_page = urldecode($_GET['ret']);
-    else
-        $ret_page = "/";
-
-    $_SESSION['ret'] = $ret_page;
-    $app->render('login.php');
+    // GET/login requests need parameters:
+    // - ret: return URL
+    // - cid: client app id
+    // - ct: timestamp
+    if( isset($_GET['ret']) and !empty($_GET['ret']) and
+        isset($_GET['cid']) and !empty($_GET['cid']) and
+        isset($_GET['ct'])  and !empty($_GET['ct']) ) {
+        
+        $_SESSION['ret'] = urldecode($_GET['ret']);
+        $_SESSION['cid'] = $_GET['cid'];
+        $_SESSION['ct']  = $_GET['ct'];
+        $app->render("login.php");
+    }
+    else {
+        $app->response->setStatus(400);
+        $app->response->setBody("Bad request (400): lacking of required parameters.");
+    }
 });
 
 $app->post('/login', function () use($app) {
-    try{
+    try {
         $u = $_POST['username'];
         $p = $_POST['password'];
 
-        $userlogin = \UserLogin::where('name', '=', $u)->firstOrFail();
+        $user = UserLogin::where('name', '=', $u)->firstOrFail();
+          
+        if( isset($user) and $user->password === md5($p . $user->salt) ) {
+            UserSession::where('uid', '=', $user->id)->delete();
 
-        if($userlogin->password === md5($p . $userlogin->salt)) {
-            // login succeeds
-            // clean dirty data
-            $sessions = \UserSession::where('uid', '=', $userlogin->id)->delete();
-
-            $sess = new \UserSession;
-            $sess->uid   = $userlogin->id;
+            $sess = new UserSession;
+            $sess->uid   = $user->id;
             $sess->token = md5(uniqid(mt_rand(), true));
-
             $now = new DateTime('now');
             $then = $now->add( new DateInterval('PT12H') );
             $sess->exp = $then->format('Y-m-d H:i:s');
             $sess->save();
 
-            if( ! isset($_SESSION['ret']) )
-                $ret = '/';
-            else
-                $ret = $_SESSION['ret'];
-
-            echo "Welcome, $u. Redirecting to $ret";
-            $app->redirect($ret . '?token=' . $sess->token);
-        }else
-            $app->render('login.php', array( 'errorMessage' => 'Login Failed!'));
-    }catch(Exception $e){
-        $app->render('error_page.php', array( 'errorMessage' => $e->getMessage() ));
+            $app->redirect( $_SESSION['ret'] . '?t=' . $sess->token );
+        }
+        else 
+            $app->render('login.php', array( 'errorMessage' => 'Wrong login name or password' ));
+    }
+    catch(Exception $e) {
+        $app->flash( 'error', $e->getMessage() );
+        $app->redirect('/error');
     }
 });
 
 $app->get('/error', function () use($app) {
-    $app->render('error_page.php');
+    $app->render('error.php');
 });
 
 $app->get('/new', function () use($app) {
@@ -70,29 +71,34 @@ $app->post('/new', function () use($app) {
         $newlogin->save();
         $id = $newlogin->id;
         echo "New user login added: id = $id";
-    }catch(Exception $e){
+        exit;
+    }
+    catch(Exception $e) {
         $app->flash('error', $e->getMessage());
         $app->redirect('/error');
     }
 });
 
 $app->get('/logout', function() use($app) {
-    if( isset($_GET['token']) and isset($_GET['ret']) ){
-        $delcount = \UserSession::where('token', '=', $_GET['token'])->delete();
-        $app->response->redirect($_GET['ret'],302);
+    if( isset($_GET['t']) and !empty($_GET['t']) and 
+        isset($_GET['ret']) and !empty($_GET['ret']) ) {
+        
+        UserSession::where('token', '=', $_GET['t'])->delete();
+        $app->response->redirect($_GET['ret'], 302);
     }
 })->name('logout');
 
 $app->get('/validate', function () use($app) {
     $app->response->headers->set('Content-Type', 'application/json');
-    if( ! isset( $_GET['token'] ) )
+    if( !isset($_GET['t']) or empty($_GET['t']) )
         echo '{ "status" : "none" }';
-    else{
-        $token = $_GET['token'];
+    else {
+        $token = $_GET['t'];
         $now   = new DateTime('now');
-        if( \UserSession::where('token', '=', $token)->count() > 0 ) {
-            $sess = \UserSession::where('token', '=', $token)->firstOrFail();
-            $exp = new DateTime($sess->exp);
+        $sess  = UserSession::where('token', '=', $token);
+        if( $sess->count() > 0 ) {
+            $sess = $sess->firstOrFail();
+            $exp  = new DateTime($sess->exp);
             if( $now > $exp ) {
                 $sess->delete();
                 echo '{ "status" : "expired" }';
