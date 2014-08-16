@@ -11,7 +11,7 @@ $app->get('/login', function () use($app) {
     if( isset($_GET['ret']) and !empty($_GET['ret']) and
         isset($_GET['cid']) and !empty($_GET['cid']) and
         isset($_GET['ct'])  and !empty($_GET['ct']) ) {
-        
+
         $_SESSION['ret'] = urldecode($_GET['ret']);
         $_SESSION['cid'] = $_GET['cid'];
         $_SESSION['ct']  = $_GET['ct'];
@@ -29,21 +29,21 @@ $app->post('/login', function () use($app) {
         $p = $_POST['password'];
 
         $user = UserLogin::where('name', '=', $u)->firstOrFail();
-          
+
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
             UserSession::where('uid', '=', $user->id)->delete();
 
             $sess = new UserSession;
             $sess->uid   = $user->id;
             $sess->token = md5(uniqid(mt_rand(), true));
-            $now = new DateTime('now');
+            $now  = new DateTime('now');
             $then = $now->add( new DateInterval('PT12H') );
             $sess->exp = $then->format('Y-m-d H:i:s');
             $sess->save();
 
-            $app->redirect( $_SESSION['ret'] . '?t=' . $sess->token );
+            $app->response->redirect( $_SESSION['ret'] . '?t=' . $sess->token );
         }
-        else 
+        else
             $app->render('login.php', array( 'errorMessage' => 'Wrong login name or password' ));
     }
     catch(Exception $e) {
@@ -80,11 +80,11 @@ $app->post('/new', function () use($app) {
 });
 
 $app->get('/logout', function() use($app) {
-    if( isset($_GET['t']) and !empty($_GET['t']) and 
+    if( isset($_GET['t']) and !empty($_GET['t']) and
         isset($_GET['ret']) and !empty($_GET['ret']) ) {
-        
+
         UserSession::where('token', '=', $_GET['t'])->delete();
-        $app->response->redirect($_GET['ret'], 302);
+        $app->response->redirect($_GET['ret']);
     }
 })->name('logout');
 

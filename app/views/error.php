@@ -5,7 +5,7 @@
 <body>
 <h1>Oops! An error occurred.:-(</h1>
 <h3>Message:</h3>
-<p><?php if( isset($_SESSION['slim.flash']) ) {echo $_SESSION['slim.flash']['error'];} ?></p>
+<p><?php echo($_SESSION['slim.flash']['error']); ?></p>
 <p><a href="/">Back to homepage</a></p>
 </body>
 <html>
