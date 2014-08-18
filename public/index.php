@@ -27,10 +27,7 @@ $app = new \Slim\Slim(array(
     'templates.path' => '../app/views/'
 ));
 
-$app->get('/', function () {
-    echo "Homepage of this service. No real use.";
-});
-
+require_once "../app/routes/dashboard.php";
 require_once "../app/routes/user.php";
 
 $app->run();

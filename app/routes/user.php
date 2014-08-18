@@ -15,6 +15,7 @@ $app->get('/login', function () use($app) {
         $_SESSION['ret'] = urldecode($_GET['ret']);
         $_SESSION['cid'] = $_GET['cid'];
         $_SESSION['ct']  = $_GET['ct'];
+        $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];
         $app->render("login.php");
     }
     else {
@@ -36,9 +37,11 @@ $app->post('/login', function () use($app) {
             $sess = new UserSession;
             $sess->uid   = $user->id;
             $sess->token = md5(uniqid(mt_rand(), true));
-            $now  = new DateTime('now');
-            $then = $now->add( new DateInterval('PT12H') );
-            $sess->exp = $then->format('Y-m-d H:i:s');
+            $sess->reqt  = new DateTime('@' . $_SESSION['ct']);
+            $then = clone $sess->reqt;
+            $sess->exp   = $then->add( new DateInterval('PT12H') );
+            $sess->cid   = $_SESSION['cid'];
+            $sess->ip    = $_SESSION['ip'];
             $sess->save();
 
             $app->response->redirect( $_SESSION['ret'] . '?t=' . $sess->token );
@@ -94,10 +97,10 @@ $app->get('/validate', function () use($app) {
         echo '{ "status" : "none" }';
     else {
         $token = $_GET['t'];
-        $now   = new DateTime('now');
         $sess  = UserSession::where('token', '=', $token);
         if( $sess->count() > 0 ) {
             $sess = $sess->firstOrFail();
+            $now  = new DateTime('now');
             $exp  = new DateTime($sess->exp);
             if( $now > $exp ) {
                 $sess->delete();
@@ -109,7 +112,7 @@ $app->get('/validate', function () use($app) {
                 $diff = $exp->diff($now);
                 if( $diff->h < 1 ) {
                     $exp = $exp->add( new DateInterval('PT12H') );
-                    $sess->exp = $exp->format('Y-m-d H:i:s');
+                    $sess->exp = $exp;
                     $sess->save();
                 }
                 echo '{ "status" : "ok" }';
