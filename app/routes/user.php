@@ -1,26 +1,113 @@
 <?php
 
-require_once '../app/models/UserLogin.php';
-require_once '../app/models/UserSession.php';
-
 $app->get('/login', function () use($app) {
-    // GET/login requests need parameters:
-    // - ret: return URL
-    // - cid: client app id
-    // - ct: timestamp
-    if( isset($_GET['ret']) and !empty($_GET['ret']) and
-        isset($_GET['cid']) and !empty($_GET['cid']) and
-        isset($_GET['ct'])  and !empty($_GET['ct']) ) {
-
-        $_SESSION['ret'] = urldecode($_GET['ret']);
-        $_SESSION['cid'] = $_GET['cid'];
-        $_SESSION['ct']  = $_GET['ct'];
-        $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];
-        $app->render("login.php");
+    // check session -> cookie, validate in DB to see
+    // whether user is already logged in.
+    if( isset($_SESSION['token']) ) {
+        // if has SESSION
+        $t = $_SESSION['token'];
+        
+        // check token in DB
+        // NOTE: column 'token' should have index on it in DB
+        $sess = UserSession::where('token', '=', $t);
+        if($sess->count() == 1) {
+            $sess = $sess->first();
+            $now = new DateTime('now');
+            $exp = new DateTime( $sess->exp );
+            if( $now > $exp ) {
+                // if expired, delete in DB, unset SESSION
+                // and show login page
+                $sess->delete();
+                unset($_SESSION['token']);
+                $app->render('login.php');
+            } 
+            else {
+                // if valid, show words then redirect back
+                $app->render('wait_to_redirect.php', 
+                                array( 'msg' => 'You had alread logged in',
+                                       //'url' => $app->request->headers->get('REFERER'),
+                                       'url' => 'http://localhost/',
+                                       'sec' => 5 )
+                            );
+            }
+        }
+        else {
+            if( $sess->count() > 1 ) {
+                // delete dirty data!
+                $sess->delete();
+            }
+            
+            // no session found in DB
+            // so this SESSION is invalid, unset it
+            // and show login page
+            unset($_SESSION['token']);
+            $app->render('login.php');           
+        }   
     }
     else {
-        $app->response->setStatus(400);
-        $app->response->setBody("Bad request (400): lacking of required parameters.");
+        // if no token in SESSION
+        // go and check cookie
+        if( isset($_COOKIE['uniqueid']) ){
+            $uid = $_COOKIE['uniqueid'];
+            
+            // Note: column uniqueid should have index too
+            $sess = UserSession::where('uniqueid', '=', $uid);
+            if( $sess->count == 1 ){
+                $sess = $sess->first();
+                $now = new DateTime('now');
+                $exp = new DateTime( $sess->exp );
+                if( $now > $exp ) {
+                    // if expired, delete in DB, unset cookie
+                    // and show login page
+                    $sess->delete();
+                    setcookie('uniqueid', time() - 3600);
+                    $app->render('login.php');
+                } 
+                else {
+                    // if valid, set SESSION
+                    // and show words then redirect back
+                    $_SESSION['token'] = $sess->token;
+                    $app->render('wait_to_redirect.php', 
+                                    array( 'msg' => 'You had alread logged in',
+                                           //'url' => $app->request->headers->get('REFERER'),
+                                           'url' => 'http://localhost/',
+                                           'sec' => 5 )
+                                );
+                }
+            }
+            else {
+                if( $sess->count() > 1 ) {
+                    // delete dirty data!
+                    $sess->delete();
+                }
+                
+                // no session found in DB
+                // so this cookie is invalid, unset it
+                // and show login page
+                setcookie('uniqueid', time() - 3600);
+                $app->render('login.php');
+            }
+        }
+        else {
+            // no SESSION, no cookie
+            
+            // GET/login requests need parameters:
+            // - ret: return URL
+            // - cid: client app id
+            // - ct: timestamp
+            if( hasSetGETParams( array("ret", "cid", "ct") )) {
+                
+                $_SESSION['ret'] = urldecode($_GET['ret']);
+                $_SESSION['cid'] = $_GET['cid'];
+                $_SESSION['ct']  = $_GET['ct'];
+                $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];
+                $app->render("login.php");
+            }
+            else {
+                $app->response->setStatus(400);
+                $app->response->setBody("Bad request (400): lacking of required parameters.");
+            }
+        }
     }
 });
 
@@ -37,13 +124,15 @@ $app->post('/login', function () use($app) {
             $sess = new UserSession;
             $sess->uid   = $user->id;
             $sess->token = md5(uniqid(mt_rand(), true));
-            $sess->reqt  = new DateTime('@' . $_SESSION['ct']);
+            $sess->reqt  = new DateTime('now');
             $then = clone $sess->reqt;
             $sess->exp   = $then->add( new DateInterval('PT12H') );
             $sess->cid   = $_SESSION['cid'];
             $sess->ip    = $_SESSION['ip'];
             $sess->save();
-
+            
+            $_SESSION['token'] = $sess->token;
+            setcookie('uniqueid', $sess->id, time() + 3600);
             $app->response->redirect( $_SESSION['ret'] . '?t=' . $sess->token );
         }
         else
@@ -83,9 +172,9 @@ $app->post('/new', function () use($app) {
 });
 
 $app->get('/logout', function() use($app) {
-    if( isset($_GET['t']) and !empty($_GET['t']) and
-        isset($_GET['ret']) and !empty($_GET['ret']) ) {
-
+    //if( isset($_GET['t']) and !empty($_GET['t']) and
+    //    isset($_GET['ret']) and !empty($_GET['ret']) ) {
+    if(hasSetGETParams( array( "t", "ret" ) ) ){
         UserSession::where('token', '=', $_GET['t'])->delete();
         $app->response->redirect($_GET['ret']);
     }

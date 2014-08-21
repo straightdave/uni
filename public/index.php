@@ -27,6 +27,9 @@ $app = new \Slim\Slim(array(
     'templates.path' => '../app/views/'
 ));
 
+require_once '../app/models/UserLogin.php';
+require_once '../app/models/UserSession.php';
+require_once '../app/helpers/helper.php';
 require_once "../app/routes/dashboard.php";
 require_once "../app/routes/user.php";
 
