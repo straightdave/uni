@@ -1,113 +1,53 @@
 <?php
 
 $app->get('/login', function () use($app) {
-    // check session -> cookie, validate in DB to see
+    // check cookie, validate in DB to see
     // whether user is already logged in.
-    if( isset($_SESSION['token']) ) {
-        // if has SESSION
-        $t = $_SESSION['token'];
-        
-        // check token in DB
-        // NOTE: column 'token' should have index on it in DB
-        $sess = UserSession::where('token', '=', $t);
-        if($sess->count() == 1) {
+    if( isset($_COOKIE['uniqueid']) ){
+        $uid = $_COOKIE['uniqueid'];
+
+        // Note: column uniqueid should have index
+        $sess = UserSession::where('id', '=', $uid);
+        if( $sess->count() == 1 ) {
             $sess = $sess->first();
             $now = new DateTime('now');
             $exp = new DateTime( $sess->exp );
-            if( $now > $exp ) {
-                // if expired, delete in DB, unset SESSION
-                // and show login page
-                $sess->delete();
-                unset($_SESSION['token']);
-                $app->render('login.php');
-            } 
-            else {
-                // if valid, show words then redirect back
-                $app->render('wait_to_redirect.php', 
-                                array( 'msg' => 'You had alread logged in',
-                                       //'url' => $app->request->headers->get('REFERER'),
-                                       'url' => 'http://localhost/',
-                                       'sec' => 5 )
+            if( $now < $exp ) {
+                // if valid (not expired), show words then redirect back
+                $app->render('wait_to_redirect.php',
+                              array( 'msg' => 'You had alread logged in',
+                                     //'url' => $app->request->headers->get('REFERER'),
+                                     'url' => 'http://localhost/',
+                                     'sec' => 5 )
                             );
+                return;
             }
         }
-        else {
-            if( $sess->count() > 1 ) {
-                // delete dirty data!
-                $sess->delete();
-            }
-            
-            // no session found in DB
-            // so this SESSION is invalid, unset it
-            // and show login page
-            unset($_SESSION['token']);
-            $app->render('login.php');           
-        }   
+
+        // if sess expired or more that one sess found (dirty)
+        // clean the data and unset cookie
+        if( $sess->count() > 0 )
+            $sess->delete();
+        setcookie('uniqueid', time() - 3600);
+    }
+
+    // no cookie found in UA,
+    // initial login process (show login page)
+
+    // GET/login requests need parameters:
+    // - ret: return URL
+    // - cid: client app id
+    // - ct: timestamp
+    if( hasSetGETParams( array("ret", "cid", "ct") ) ) {
+        $_SESSION['ret'] = urldecode($_GET['ret']);
+        $_SESSION['cid'] = $_GET['cid'];
+        $_SESSION['ct']  = $_GET['ct'];
+        $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];
+        $app->render("login.php");
     }
     else {
-        // if no token in SESSION
-        // go and check cookie
-        if( isset($_COOKIE['uniqueid']) ){
-            $uid = $_COOKIE['uniqueid'];
-            
-            // Note: column uniqueid should have index too
-            $sess = UserSession::where('uniqueid', '=', $uid);
-            if( $sess->count == 1 ){
-                $sess = $sess->first();
-                $now = new DateTime('now');
-                $exp = new DateTime( $sess->exp );
-                if( $now > $exp ) {
-                    // if expired, delete in DB, unset cookie
-                    // and show login page
-                    $sess->delete();
-                    setcookie('uniqueid', time() - 3600);
-                    $app->render('login.php');
-                } 
-                else {
-                    // if valid, set SESSION
-                    // and show words then redirect back
-                    $_SESSION['token'] = $sess->token;
-                    $app->render('wait_to_redirect.php', 
-                                    array( 'msg' => 'You had alread logged in',
-                                           //'url' => $app->request->headers->get('REFERER'),
-                                           'url' => 'http://localhost/',
-                                           'sec' => 5 )
-                                );
-                }
-            }
-            else {
-                if( $sess->count() > 1 ) {
-                    // delete dirty data!
-                    $sess->delete();
-                }
-                
-                // no session found in DB
-                // so this cookie is invalid, unset it
-                // and show login page
-                setcookie('uniqueid', time() - 3600);
-                $app->render('login.php');
-            }
-        }
-        else {
-            // no SESSION, no cookie
-            
-            // GET/login requests need parameters:
-            // - ret: return URL
-            // - cid: client app id
-            // - ct: timestamp
-            if( hasSetGETParams( array("ret", "cid", "ct") )) {
-                
-                $_SESSION['ret'] = urldecode($_GET['ret']);
-                $_SESSION['cid'] = $_GET['cid'];
-                $_SESSION['ct']  = $_GET['ct'];
-                $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];
-                $app->render("login.php");
-            }
-            else {
-                $app->response->setStatus(400);
-                $app->response->setBody("Bad request (400): lacking of required parameters.");
-            }
-        }
+        $app->response->setStatus(400);
+        $app->response->setBody("Bad request (400): lacking of required parameters.");
     }
 });
 
@@ -119,6 +59,7 @@ $app->post('/login', function () use($app) {
         $user = UserLogin::where('name', '=', $u)->firstOrFail();
 
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
+            // delete dirty data
             UserSession::where('uid', '=', $user->id)->delete();
 
             $sess = new UserSession;
@@ -126,12 +67,11 @@ $app->post('/login', function () use($app) {
             $sess->token = md5(uniqid(mt_rand(), true));
             $sess->reqt  = new DateTime('now');
             $then = clone $sess->reqt;
-            $sess->exp   = $then->add( new DateInterval('PT12H') );
+            $sess->exp   = $then->add( new DateInterval('PT2H') );
             $sess->cid   = $_SESSION['cid'];
             $sess->ip    = $_SESSION['ip'];
             $sess->save();
-            
-            $_SESSION['token'] = $sess->token;
+
             setcookie('uniqueid', $sess->id, time() + 3600);
             $app->response->redirect( $_SESSION['ret'] . '?t=' . $sess->token );
         }
@@ -172,9 +112,7 @@ $app->post('/new', function () use($app) {
 });
 
 $app->get('/logout', function() use($app) {
-    //if( isset($_GET['t']) and !empty($_GET['t']) and
-    //    isset($_GET['ret']) and !empty($_GET['ret']) ) {
-    if(hasSetGETParams( array( "t", "ret" ) ) ){
+    if( hasSetGETParams( array( "t", "ret" ) ) ) {
         UserSession::where('token', '=', $_GET['t'])->delete();
         $app->response->redirect($_GET['ret']);
     }
@@ -182,13 +120,13 @@ $app->get('/logout', function() use($app) {
 
 $app->get('/validate', function () use($app) {
     $app->response->headers->set('Content-Type', 'application/json');
-    if( !isset($_GET['t']) or empty($_GET['t']) )
+    if( ! hasSetGETParams( array("t") ) )
         echo '{ "status" : "none" }';
     else {
         $token = $_GET['t'];
         $sess  = UserSession::where('token', '=', $token);
-        if( $sess->count() > 0 ) {
-            $sess = $sess->firstOrFail();
+        if( $sess->count() == 1 ) {
+            $sess = $sess->first();
             $now  = new DateTime('now');
             $exp  = new DateTime($sess->exp);
             if( $now > $exp ) {
@@ -200,7 +138,7 @@ $app->get('/validate', function () use($app) {
                 // the expiration for another 12 hours
                 $diff = $exp->diff($now);
                 if( $diff->h < 1 ) {
-                    $exp = $exp->add( new DateInterval('PT12H') );
+                    $exp = $exp->add( new DateInterval('PT2H') );
                     $sess->exp = $exp;
                     $sess->save();
                 }
@@ -210,6 +148,8 @@ $app->get('/validate', function () use($app) {
         else
             echo '{ "status" : "notlogin" }';
     }
+    // if the last statement is 'echo', use 'exit' to ensure
+    // ending the output stream
     exit;
 });
 
