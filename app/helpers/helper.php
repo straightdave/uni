@@ -13,7 +13,7 @@ function isVersionHigherThan($v) {
         list($v_1, $v_2, $v_3) = split('\.', $v, 3);
         //print $cv_1 . $cv_2 . $cv_3;
         //print $v_1 . $v_2 . $v_3;
-        
+
         return ( (int)$cv_1 > (int)$v_1 ) or
                ( (int)$cv_1 == (int)$v_1 and (int)$cv_2 > (int)$v_2 ) or
                ( (int)$cv_1 == (int)$v_1 and (int)$cv_2 == (int)$v_2 and (int)$cv_3 >= (int)$v_3 );
@@ -30,15 +30,7 @@ function hasSetGETParams($array) {
     return true;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+function adt() {
+    $t = (new DateTime('now'))->format('Y-m-d H:i:s');
+    return '[' . $t . substr((string)microtime(), 1, 8) . '] ';
+}

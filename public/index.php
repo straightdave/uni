@@ -24,13 +24,16 @@ $resolver->setDefaultConnection('default');
 \Illuminate\Database\Eloquent\Model::setConnectionResolver($resolver);
 
 $app = new \Slim\Slim(array(
-    'templates.path' => '../app/views/'
+    'templates.path' => '../app/views/',
+    'log.enabled' => true,
+    'log.writer' => new \Slim\LogWriter( fopen('/var/log/myapp/slim.log', 'a') )
 ));
 
 require_once '../app/models/UserLogin.php';
 require_once '../app/models/UserSession.php';
+require_once '../app/models/TempToken.php';
 require_once '../app/helpers/helper.php';
-require_once "../app/routes/dashboard.php";
-require_once "../app/routes/user.php";
+require_once '../app/routes/dashboard.php';
+require_once '../app/routes/user.php';
 
 $app->run();

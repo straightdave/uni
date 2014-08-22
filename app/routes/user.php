@@ -1,10 +1,52 @@
 <?php
 
+// GET: /check
+// checking status with cookies in UA
+// called by js (ajax)
+//
+$app->get('/check', function () use($app) {
+    // get cookie, validate in DB to see
+    // whether user is already logged in.
+    if( isset($_COOKIE['uniqueid']) ){
+        $uid = $_COOKIE['uniqueid'];
+
+        // Note: column uniqueid should have index
+        //       currently using id in user_session table
+        $sess = UserSession::where('id', '=', $uid);
+        if( $sess->count() == 1 ) {
+            $sess = $sess->first();
+            $now = new DateTime('now');
+            $exp = new DateTime( $sess->exp );
+            if( $now < $exp ) {
+                // if valid (not expired), show words then redirect back
+                echo('console.log("'. $sess->token . '");');
+                exit;
+                return;
+            }
+        }
+
+        // if sess expired or more than one sess found (dirty)
+        // clean the data and unset cookie
+        if( $sess->count() > 0 )
+            $sess->delete();
+        setcookie('uniqueid', '', time() - 3600);
+        echo('console.log("token expired");');
+        exit;
+    }
+    else {
+        echo('console.log("no cookie get");');
+        exit;
+    }
+});
+
 $app->get('/login', function () use($app) {
+    $app->log->info( adt() . 'enter action /login');
+
     // check cookie, validate in DB to see
     // whether user is already logged in.
     if( isset($_COOKIE['uniqueid']) ){
         $uid = $_COOKIE['uniqueid'];
+        $app->log->info( adt() . 'in cookie: ' . $uid );
 
         // Note: column uniqueid should have index
         $sess = UserSession::where('id', '=', $uid);
@@ -12,6 +54,8 @@ $app->get('/login', function () use($app) {
             $sess = $sess->first();
             $now = new DateTime('now');
             $exp = new DateTime( $sess->exp );
+            $app->log->info( adt() . 'token: ' . $sess->token . '; exp: ' . $exp->format('Y-m-d H:i:s') . '; now: ' . $now->format('Y-m-d H:i:s') );
+
             if( $now < $exp ) {
                 // if valid (not expired), show words then redirect back
                 $app->render('wait_to_redirect.php',
@@ -24,13 +68,14 @@ $app->get('/login', function () use($app) {
             }
         }
 
-        // if sess expired or more that one sess found (dirty)
+        // if sess expired or more than one sess found (dirty)
         // clean the data and unset cookie
         if( $sess->count() > 0 )
             $sess->delete();
-        setcookie('uniqueid', time() - 3600);
+        setcookie('uniqueid', '', time() - 3600);
     }
 
+    $app->log->info('no cookie found in UA, proceed normal login process.');
     // no cookie found in UA,
     // initial login process (show login page)
 
@@ -73,7 +118,14 @@ $app->post('/login', function () use($app) {
             $sess->save();
 
             setcookie('uniqueid', $sess->id, time() + 3600);
-            $app->response->redirect( $_SESSION['ret'] . '?t=' . $sess->token );
+
+            // save temp token -- real token mapping to DB
+            $temptoken = new TempToken;
+            $temptoken->temp = md5(uniqid(mt_rand(), true));
+            $temptoken->token = $sess->token;
+            $temptoken->save();
+            // return the temp token to UA and client app
+            $app->response->redirect( $_SESSION['ret'] . '?t=' . $temptoken->temp );
         }
         else
             $app->render('login.php', array( 'errorMessage' => 'Wrong login name or password' ));
@@ -83,6 +135,40 @@ $app->post('/login', function () use($app) {
         $app->redirect('/error');
     }
 });
+
+// app use temp token to trade for real token
+// via GET param 't' as temp token
+$app->get('/gettoken', function () use($app) {
+    $app->log->info('enter action /gettoken');
+
+    $app->response->headers->set('Content-Type', 'application/json');
+    try {
+        if( hasSetGETParams( array("t") ) ) {
+            $app->log->info('get GET[t]: ' . $_GET['t']);
+
+            // get temp token and return real token to app
+            $temptoken = TempToken::where('temp', '=', $_GET['tt']);
+            $app->log->info('found ' . $temptoken->count() . ' item with temp token');
+
+            if( $temptoken->count() == 1 ) {
+                $temptoken = $temptoken->first();
+
+                $app->log->info('return json real token: ' . $temptoken->token);
+                echo '{ "token" : "' . $temptoken->token . '" }';
+            }
+            // then, delete this mapping
+            if( $temptoken->count() > 0 )
+                $temptoken->delete();
+        }
+    }
+    catch(Exception $e) {
+        $app->log->info('error occurred in /gettoken: ' . $e->getMessage());
+        echo '{ "token" : "none" }';
+    }
+    exit;
+});
+
+
 
 $app->get('/error', function () use($app) {
     $app->render('error.php');
