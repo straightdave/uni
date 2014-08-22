@@ -5,6 +5,9 @@
 // called by js (ajax)
 //
 $app->get('/check', function () use($app) {
+    //$app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
+    $app->response->headers->set('Access-Control-Allow-Origin', '*');
+
     // get cookie, validate in DB to see
     // whether user is already logged in.
     if( isset($_COOKIE['uniqueid']) ){
