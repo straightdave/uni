@@ -42,12 +42,15 @@ $app->get('/check', function () use($app) {
     }
 });
 
+// GET: /login
+// 
+//
 $app->get('/login', function () use($app) {
     $app->log->info( adt() . 'enter action /login');
 
     // check cookie, validate in DB to see
     // whether user is already logged in.
-    if( isset($_COOKIE['uniqueid']) ){
+    if( isset($_COOKIE['uniqueid']) ) {
         $uid = $_COOKIE['uniqueid'];
         $app->log->info( adt() . 'in cookie: ' . $uid );
 
@@ -80,24 +83,31 @@ $app->get('/login', function () use($app) {
 
     $app->log->info('no cookie found in UA, proceed normal login process.');
     // no cookie found in UA,
-    // initial login process (show login page)
+    // initial normal login process (show login page)
 
-    // GET/login requests need parameters:
+    // GET: /login needs 3 parameters:
     // - ret: return URL
     // - cid: client app id
     // - ct: timestamp
-    if( hasSetGETParams( array("ret", "cid", "ct") ) ) {
+    // with default values
+    if( hasSetGETParams( array('ret') ) )
         $_SESSION['ret'] = urldecode($_GET['ret']);
+    else
+        $_SESSION['ret'] = '/';
+        
+    if( hasSetGETParams( array('cid') ) )
         $_SESSION['cid'] = $_GET['cid'];
-        $_SESSION['ct']  = $_GET['ct'];
-        $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];
-        $app->render("login.php");
-    }
-    else {
-        $app->response->setStatus(400);
-        $app->response->setBody("Bad request (400): lacking of required parameters.");
-    }
-});
+    else
+        $_SESSION['cid'] = 0;
+    
+    if( hasSetGETParams( array('ct') ) )
+        $_SESSION['ct'] = $_GET['ct'];
+    else
+        $_SESSION['ct'] = time();
+
+    $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];  // don't rely on user's ip; easy to fake
+    $app->render("login.php");
+})->name('login');
 
 $app->post('/login', function () use($app) {
     try {
@@ -171,12 +181,6 @@ $app->get('/gettoken', function () use($app) {
     exit;
 });
 
-
-
-$app->get('/error', function () use($app) {
-    $app->render('error.php');
-});
-
 $app->get('/new', function () use($app) {
     $app->render('new_login.php');
 });
@@ -203,6 +207,7 @@ $app->post('/new', function () use($app) {
 $app->get('/logout', function() use($app) {
     if( hasSetGETParams( array( "t", "ret" ) ) ) {
         UserSession::where('token', '=', $_GET['t'])->delete();
+        setcookie('uniqueid', '', time() - 3600 );
         $app->response->redirect($_GET['ret']);
     }
 })->name('logout');

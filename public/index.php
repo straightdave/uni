@@ -29,11 +29,23 @@ $app = new \Slim\Slim(array(
     'log.writer' => new \Slim\LogWriter( fopen('/var/log/myapp/slim.log', 'a') )
 ));
 
+$app->add(new \Slim\Middleware\SessionCookie(array(
+    'expires' => '24 hours',
+    'path' => '/',
+    'domain' => null,
+    'secure' => false,
+    'httponly' => false,
+    'name' => 'slim_session',
+    'secret' => 'CHANGE_ME',  // here could be any string?
+    'cipher' => MCRYPT_RIJNDAEL_256,
+    'cipher_mode' => MCRYPT_MODE_CBC
+)));
+
 require_once '../app/models/UserLogin.php';
 require_once '../app/models/UserSession.php';
 require_once '../app/models/TempToken.php';
 require_once '../app/helpers/helper.php';
-require_once '../app/routes/dashboard.php';
 require_once '../app/routes/user.php';
+require_once '../app/routes/homepage.php';
 
 $app->run();
