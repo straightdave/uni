@@ -110,6 +110,7 @@ $app->get('/login', function () use($app) {
 })->name('login');
 
 $app->post('/login', function () use($app) {
+    $app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
     try {
         $u = $_POST['username'];
         $p = $_POST['password'];
