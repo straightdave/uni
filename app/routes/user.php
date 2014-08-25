@@ -22,6 +22,7 @@ $app->get('/check', function () use($app) {
             $exp = new DateTime( $sess->exp );
             if( $now < $exp ) {
                 // if valid (not expired), show words then redirect back
+                // TODO: not to return token, return words (json)
                 echo('console.log("'. $sess->token . '");');
                 exit;
                 return;
