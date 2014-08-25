@@ -43,7 +43,7 @@ $app->get('/check', function () use($app) {
 });
 
 // GET: /login
-// 
+//
 //
 $app->get('/login', function () use($app) {
     $app->log->info( adt() . 'enter action /login');
@@ -94,12 +94,12 @@ $app->get('/login', function () use($app) {
         $_SESSION['ret'] = urldecode($_GET['ret']);
     else
         $_SESSION['ret'] = '/';
-        
+
     if( hasSetGETParams( array('cid') ) )
         $_SESSION['cid'] = $_GET['cid'];
     else
         $_SESSION['cid'] = 0;
-    
+
     if( hasSetGETParams( array('ct') ) )
         $_SESSION['ct'] = $_GET['ct'];
     else
@@ -115,7 +115,14 @@ $app->post('/login', function () use($app) {
         $u = $_POST['username'];
         $p = $_POST['password'];
 
-        $user = UserLogin::where('name', '=', $u)->firstOrFail();
+        $user = UserLogin::where('name', '=', $u);
+        if( $user->count() != 1 ) {
+            $app->render('login.php', array( 'errorMessage' => 'Wrong login name' ));
+            return;
+        }
+        else {
+            $user = $user->first();
+        }
 
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
             // delete dirty data
@@ -142,7 +149,7 @@ $app->post('/login', function () use($app) {
             $app->response->redirect( $_SESSION['ret'] . '?t=' . $temptoken->temp );
         }
         else
-            $app->render('login.php', array( 'errorMessage' => 'Wrong login name or password' ));
+            $app->render('login.php', array( 'errorMessage' => 'Wrong password' ));
     }
     catch(Exception $e) {
         $app->flash( 'error', $e->getMessage() );
@@ -182,11 +189,11 @@ $app->get('/gettoken', function () use($app) {
     exit;
 });
 
-$app->get('/new', function () use($app) {
-    $app->render('new_login.php');
-});
+$app->get('/signup', function () use($app) {
+    $app->render('signup.php');
+})->name('signup');
 
-$app->post('/new', function () use($app) {
+$app->post('/signup', function () use($app) {
     try{
         $username = $_POST['username'];
         $password = $_POST['password'];
