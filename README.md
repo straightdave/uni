@@ -28,6 +28,11 @@ this is in the progress and any help is much welcomed
 3. set up apache site (this is a slim site: point doc root to /this/app/folder/public); you should notice that here using a .htaccess file in public folder to make url rewrite (refer to slim doc)
 4. config your mysql db info in public/index.php
 
+## about test framework
+1. use PHPUnit as testing engine
+2. use Httpful as php http client
+(both above are installed from composer)
+3. use Eloquent in test framework for tests based on models
 
 ## Contact
 eyaswoo@163.com
