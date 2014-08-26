@@ -1,6 +1,8 @@
 {
     "require": {
         "slim/slim": "*",
-        "illuminate/database": "*"
+        "illuminate/database": "*",
+        "phpunit/phpunit": "4.2.*",
+        "nategood/httpful": "*"
     }
 }

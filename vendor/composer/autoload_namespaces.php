@@ -6,10 +6,14 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Symfony\\Component\\Yaml\\' => array($vendorDir . '/symfony/yaml'),
     'Slim' => array($vendorDir . '/slim/slim'),
+    'LazyMap\\' => array($vendorDir . '/ocramius/lazy-map/src'),
+    'Instantiator\\' => array($vendorDir . '/ocramius/instantiator/src'),
     'Illuminate\\Support' => array($vendorDir . '/illuminate/support'),
     'Illuminate\\Events' => array($vendorDir . '/illuminate/events'),
     'Illuminate\\Database' => array($vendorDir . '/illuminate/database'),
     'Illuminate\\Container' => array($vendorDir . '/illuminate/container'),
+    'Httpful' => array($vendorDir . '/nategood/httpful/src'),
     'Carbon' => array($vendorDir . '/nesbot/carbon/src'),
 );
