@@ -5,9 +5,6 @@
 // called by js (ajax)
 //
 $app->get('/check', function () use($app) {
-    //$app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
-    $app->response->headers->set('Access-Control-Allow-Origin', '*');
-
     // get cookie, validate in DB to see
     // whether user is already logged in.
     if( isset($_COOKIE['uniqueid']) ){
@@ -35,12 +32,10 @@ $app->get('/check', function () use($app) {
             $sess->delete();
         setcookie('uniqueid', '', time() - 3600);
         echo('console.log("token expired");');
-        exit;
     }
-    else {
+    else
         echo('console.log("no cookie get");');
-        exit;
-    }
+    exit;
 });
 
 // GET: /login
@@ -121,33 +116,52 @@ $app->post('/login', function () use($app) {
             $app->render('login.php', array( 'errorMessage' => 'Wrong login name' ));
             return;
         }
-        else {
+        else
             $user = $user->first();
-        }
 
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
-            // delete dirty data
-            UserSession::where('uid', '=', $user->id)->delete();
+            // check whether this user has logged in
+            // with another UA
+            $sess = UserSession::where('uid', '=', $user->id);
+            if( $sess->count() == 1 ) {
+                // bingo! this user has already logged in
+                // set cookie in this UA and tell them to leave
+                $sess = $sess->first();
+                setcookie('uniqueid', $sess->id, time() + 3600);
+                $app->render('wait_to_redirect.php',
+                              array( 'msg' => 'You had alread logged in from other places',
+                                     //'url' => $app->request->headers->get('REFERER'),
+                                     'url' => $_SESSION['ret'],
+                                     'sec' => 5 )
+                            );
+                return;
+            }
+            else {
+                // clean dirty data
+                if( $sess->count() > 1 )
+                    $sess->delete();
 
-            $sess = new UserSession;
-            $sess->uid   = $user->id;
-            $sess->token = md5(uniqid(mt_rand(), true));
-            $sess->reqt  = new DateTime('now');
-            $then = clone $sess->reqt;
-            $sess->exp   = $then->add( new DateInterval('PT2H') );
-            $sess->cid   = $_SESSION['cid'];
-            $sess->ip    = $_SESSION['ip'];
-            $sess->save();
+                // proceed normal login process
+                $sess = new UserSession;
+                $sess->uid   = $user->id;
+                $sess->token = md5(uniqid(mt_rand(), true));
+                $sess->reqt  = new DateTime('now');
+                $then = clone $sess->reqt;
+                $sess->exp   = $then->add( new DateInterval('PT2H') );
+                $sess->cid   = $_SESSION['cid'];
+                $sess->ip    = $_SESSION['ip'];
+                $sess->save();
 
-            setcookie('uniqueid', $sess->id, time() + 3600);
+                setcookie('uniqueid', $sess->id, time() + 3600);
 
-            // save temp token -- real token mapping to DB
-            $temptoken = new TempToken;
-            $temptoken->temp = md5(uniqid(mt_rand(), true));
-            $temptoken->token = $sess->token;
-            $temptoken->save();
-            // return the temp token to UA and client app
-            $app->response->redirect( $_SESSION['ret'] . '?t=' . $temptoken->temp );
+                // save temp token -- real token mapping to DB
+                $temptoken = new TempToken;
+                $temptoken->temp = md5(uniqid(mt_rand(), true));
+                $temptoken->token = $sess->token;
+                $temptoken->save();
+                // return the temp token to UA and client app
+                $app->response->redirect( $_SESSION['ret'] . '?t=' . $temptoken->temp );
+            }
         }
         else
             $app->render('login.php', array( 'errorMessage' => 'Wrong password' ));
