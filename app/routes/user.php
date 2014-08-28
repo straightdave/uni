@@ -62,7 +62,6 @@ $app->get('/login', function () use($app) {
                 // if valid (not expired), show words then redirect back
                 $app->render('wait_to_redirect.php',
                               array( 'msg' => 'You had alread logged in',
-                                     //'url' => $app->request->headers->get('REFERER'),
                                      'url' => 'http://localhost/',
                                      'sec' => 5 )
                             );
@@ -120,6 +119,13 @@ $app->post('/login', function () use($app) {
             $user = $user->first();
 
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
+            $cookie_exp_time = 3600 * 24;
+            $sess_exp_string = 'PT2H';
+            if( isset($_POST['rememberme']) and $_POST['rememberme'] == true ) {
+                $cookie_exp_time = 3600 * 240;
+                $sess_exp_string = 'P10D';
+            }
+
             // check whether this user has logged in
             // with another UA
             $sess = UserSession::where('uid', '=', $user->id);
@@ -127,7 +133,7 @@ $app->post('/login', function () use($app) {
                 // bingo! this user has already logged in
                 // set cookie in this UA and tell them to leave
                 $sess = $sess->first();
-                setcookie('uniqueid', $sess->id, time() + 3600);
+                setcookie('uniqueid', $sess->id, time() + $cookie_exp_time);
                 $app->render('wait_to_redirect.php',
                               array( 'msg' => 'You had alread logged in from other places',
                                      //'url' => $app->request->headers->get('REFERER'),
@@ -147,12 +153,11 @@ $app->post('/login', function () use($app) {
                 $sess->token = md5(uniqid(mt_rand(), true));
                 $sess->reqt  = new DateTime('now');
                 $then = clone $sess->reqt;
-                $sess->exp   = $then->add( new DateInterval('PT2H') );
+                $sess->exp   = $then->add( new DateInterval($sess_exp_string) );
                 $sess->cid   = $_SESSION['cid'];
                 $sess->ip    = $_SESSION['ip'];
                 $sess->save();
-
-                setcookie('uniqueid', $sess->id, time() + 3600);
+                setcookie('uniqueid', $sess->id, time() + $cookie_exp_time);
 
                 // save temp token -- real token mapping to DB
                 $temptoken = new TempToken;
