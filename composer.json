@@ -1,6 +1,7 @@
 {
     "require": {
         "slim/slim": "*",
-        "illuminate/database": "*"
+        "illuminate/database": "*",
+        "symfony/yaml" : "*"
     }
 }
