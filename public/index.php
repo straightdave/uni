@@ -1,23 +1,12 @@
 <?php
 session_start();
-
 require_once "../vendor/autoload.php";
 
-// Database information
-$settings = array(
-    'driver'    => 'mysql',
-    'host'      => 'localhost',
-    'database'  => 'uni_dev',
-    'username'  => 'root',
-    'password'  => '123123',
-    'collation' => 'utf8_general_ci',
-    'charset'   => 'utf8',
-    'prefix'    => ''
-);
+use Symfony\Component\Yaml\Yaml;
+$config = Yaml::parse(file_get_contents('../config.yml'));
 
-// Bootstrap Eloquent ORM
 $connFactory = new \Illuminate\Database\Connectors\ConnectionFactory(new \Illuminate\Container\Container);
-$conn        = $connFactory->make($settings);
+$conn        = $connFactory->make($config['db-dev']);
 $resolver    = new \Illuminate\Database\ConnectionResolver();
 $resolver->addConnection('default', $conn);
 $resolver->setDefaultConnection('default');
@@ -30,13 +19,13 @@ $app = new \Slim\Slim(array(
 ));
 
 $app->add(new \Slim\Middleware\SessionCookie(array(
-    'expires' => '24 hours',
+    'expires' => '2 hours',
     'path' => '/',
     'domain' => null,
     'secure' => false,
     'httponly' => false,
     'name' => 'slim_session',
-    'secret' => 'CHANGE_ME',  // here could be any string?
+    'secret' => '123123',  // here could be any string?
     'cipher' => MCRYPT_RIJNDAEL_256,
     'cipher_mode' => MCRYPT_MODE_CBC
 )));

@@ -119,7 +119,7 @@ $app->post('/login', function () use($app) {
             $user = $user->first();
 
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
-            $cookie_exp_time = 3600 * 24;
+            $cookie_exp_time = 3600 * 2;
             $sess_exp_string = 'PT2H';
             if( isset($_POST['rememberme']) and $_POST['rememberme'] == true ) {
                 $cookie_exp_time = 3600 * 240;
