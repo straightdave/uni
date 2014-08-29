@@ -6,3 +6,8 @@ db-dev:
   password:  123123
   collation: utf8_general_ci
   charset:   utf8
+
+siteconf:
+  port:    80
+  docroot: /var/www/uni/public/
+  dir:     /var/www/uni/

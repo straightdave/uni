@@ -39,7 +39,7 @@ $app->get('/check', function () use($app) {
 });
 
 // GET: /login
-//
+// show login page
 //
 $app->get('/login', function () use($app) {
     $app->log->info( adt() . 'enter action /login');
@@ -104,6 +104,9 @@ $app->get('/login', function () use($app) {
     $app->render("login.php");
 })->name('login');
 
+// POST: /login
+// proceed logging in process
+//
 $app->post('/login', function () use($app) {
     $app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
     try {
@@ -177,8 +180,10 @@ $app->post('/login', function () use($app) {
     }
 });
 
+// GET: /gettoken
 // app use temp token to trade for real token
 // via GET param 't' as temp token
+//
 $app->get('/gettoken', function () use($app) {
     $app->log->info('enter action /gettoken');
 
@@ -201,18 +206,26 @@ $app->get('/gettoken', function () use($app) {
             if( $temptoken->count() > 0 )
                 $temptoken->delete();
         }
+        else
+            echo '{ "token" : "notemp" }';
     }
     catch(Exception $e) {
         $app->log->info('error occurred in /gettoken: ' . $e->getMessage());
-        echo '{ "token" : "none" }';
+        echo '{ "token" : "error" }';
     }
     exit;
 });
 
+// GET: /signup
+// show sign up page
+//
 $app->get('/signup', function () use($app) {
     $app->render('signup.php');
 })->name('signup');
 
+// POST: /signup
+// proceed sign up requests
+//
 $app->post('/signup', function () use($app) {
     try{
         $username = $_POST['username'];
@@ -220,7 +233,7 @@ $app->post('/signup', function () use($app) {
         $newlogin = new \UserLogin;
         $newlogin->name = $username;
         $newlogin->salt = strval((new DateTime())->getTimestamp());
-        $newlogin->password = md5($password.($newlogin->salt));
+        $newlogin->password = md5($password . ($newlogin->salt));
         $newlogin->save();
         $id = $newlogin->id;
         echo "New user login added: id = $id";
@@ -232,14 +245,31 @@ $app->post('/signup', function () use($app) {
     }
 });
 
+// GET: /logout
+// logout user
+//
 $app->get('/logout', function() use($app) {
-    if( hasSetGETParams( array( "t", "ret" ) ) ) {
-        UserSession::where('token', '=', $_GET['t'])->delete();
-        setcookie('uniqueid', '', time() - 3600 );
-        $app->response->redirect($_GET['ret']);
+    $ret = '/';
+    if( isset($_GET['ret']) ) {
+        $ret = $_GET['ret'];
+    }
+
+    try {
+        if( isset($_COOKIE['uniqueid']) ) {
+            $uid = $_COOKIE['uniqueid'];
+            setcookie('uniqueid', '', time() - 3600 );
+            UserSession::where('id', '=', $uid)->delete();
+        }
+        $app->response->redirect($ret);
+    }
+    catch(Exception $e) {
+        $app->response->redirect($ret);
     }
 })->name('logout');
 
+// GET: /validate
+//
+//
 $app->get('/validate', function () use($app) {
     $app->response->headers->set('Content-Type', 'application/json');
     if( ! hasSetGETParams( array("t") ) )
