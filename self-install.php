@@ -28,7 +28,7 @@ function rrmdir($dir) {
 //
 // 1. read yaml config
 //
-require_once "../vendor/autoload.php";
+require_once "vendor/autoload.php";
 use Symfony\Component\Yaml\Yaml;
 $config = Yaml::parse(file_get_contents('config.yml'));
 $siteconf = $config['siteconf'];
@@ -45,7 +45,7 @@ echo "$output";
 $str = file_get_contents('uni.conf');
 $str = str_replace('{port}', $siteconf['port'], $str);
 $str = str_replace('{docroot}', $siteconf['docroot'], $str);
-file_put_contents('uni.conf');
+file_put_contents('uni.conf', $str);
 copy('uni.conf', '/etc/apache2/sites-available/uni.conf'); // will replace original one
 
 //
@@ -54,6 +54,8 @@ copy('uni.conf', '/etc/apache2/sites-available/uni.conf'); // will replace origi
 if( file_exists($siteconf['dir']) and is_dir($siteconf['dir']) ) {
     rrmdir($siteconf['dir']);
 }
+$output = shell_exec('mkdir ' . $siteconf['dir']);
+echo "$output";
 $output = shell_exec('cp -r * ' . $siteconf['dir']);
 echo "$output";
 
@@ -77,10 +79,10 @@ $db = $dbconf['database'];
 $user = $dbconf['username'];
 $pwd = $dbconf['password'];
 
-$output = shell_exec('mysql -u ' . $user . ' -p' . $pwd . ' -e "DROP DATABASE IF EXISTS ' . $database . ';"');
+$output = shell_exec('mysql -u ' . $user . ' -p' . $pwd . ' -e "DROP DATABASE IF EXISTS ' . $db . ';"');
 echo "$output";
 
-$output = shell_exec('mysql -u ' . $user . ' -p' . $pwd . ' -e "CREATE DATABASE ' . $database . ';"');
+$output = shell_exec('mysql -u ' . $user . ' -p' . $pwd . ' -e "CREATE DATABASE ' . $db . ';"');
 echo "$output";
 
 $output = shell_exec('mysql -u ' . $user . ' -p' . $pwd . ' ' . $db . ' < db.sql');
