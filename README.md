@@ -1,7 +1,7 @@
 uni
 ===
 
-(dave: well... it's time to give detailed description about this repository. Basically I am a lazy person.)
+(for test collaterals, see uni-test branch)
 
 ## the purposes
 * To build an SSO (Single Sign-On) service from scratch
