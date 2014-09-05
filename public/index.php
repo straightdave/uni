@@ -33,6 +33,8 @@ $app->add(new \Slim\Middleware\SessionCookie(array(
 require_once '../app/models/UserLogin.php';
 require_once '../app/models/UserSession.php';
 require_once '../app/models/TempToken.php';
+require_once '../app/models/App.php';
+
 require_once '../app/helpers/helper.php';
 require_once '../app/routes/user.php';
 require_once '../app/routes/homepage.php';

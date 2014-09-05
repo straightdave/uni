@@ -16,6 +16,36 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `app`
+--
+
+DROP TABLE IF EXISTS `app`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `app` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `cred_rec_url` varchar(255) DEFAULT NULL,
+  `secret` varchar(255) DEFAULT NULL,
+  `contact` varchar(255) DEFAULT NULL,
+  `domain` varchar(255) DEFAULT NULL,
+  `available` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `app`
+--
+
+LOCK TABLES `app` WRITE;
+/*!40000 ALTER TABLE `app` DISABLE KEYS */;
+INSERT INTO `app` VALUES (0,'test',NULL,'http://127.0.0.1/getcred',NULL,NULL,NULL,1),(1,'SineMedia',NULL,'http://10.172.44.101:8000/userinfo/',NULL,NULL,NULL,1);
+/*!40000 ALTER TABLE `app` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `temp_token`
 --
 
@@ -85,7 +115,7 @@ CREATE TABLE `user_session` (
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`),
   CONSTRAINT `user_session_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `user_login` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -106,4 +136,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-08-22 17:41:19
+-- Dump completed on 2014-09-05 14:45:22

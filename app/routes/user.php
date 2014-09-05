@@ -150,6 +150,10 @@ $app->post('/login', function () use($app) {
                 if( $sess->count() > 1 )
                     $sess->delete();
 
+                // send name and password to app
+                $clientapp = App::where('id', '=', $_SESSION['cid'])->firstOrFail();
+                $resp_key = file_get_contents( $clientapp->cred_rec_url .'?name='.$u.'&pwd='.$p);
+
                 // proceed normal login process
                 $sess = new UserSession;
                 $sess->uid   = $user->id;
@@ -163,12 +167,12 @@ $app->post('/login', function () use($app) {
                 setcookie('uniqueid', $sess->id, time() + $cookie_exp_time);
 
                 // save temp token -- real token mapping to DB
-                $temptoken = new TempToken;
-                $temptoken->temp = md5(uniqid(mt_rand(), true));
-                $temptoken->token = $sess->token;
-                $temptoken->save();
+                //$temptoken = new TempToken;
+                //$temptoken->temp = md5(uniqid(mt_rand(), true));
+                //$temptoken->token = $sess->token;
+                //$temptoken->save();
                 // return the temp token to UA and client app
-                $app->response->redirect( $_SESSION['ret'] . '?t=' . $temptoken->temp );
+                $app->response->redirect( $_SESSION['ret'] . '?key='.$resp_key );
             }
         }
         else
@@ -318,5 +322,11 @@ $app->get('/showuser', function () use($app) {
     $app->response->headers->set('Content-Type', 'application/json');
     $users = \UserLogin::all();
     echo $users->toJson();
+    exit;
+});
+
+// for test purpose
+$app->get('/getcred', function () use($app) {
+    echo 'testkey';
     exit;
 });
