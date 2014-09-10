@@ -7,7 +7,7 @@
 $app->get('/check', function () use($app) {
     // get cookie, validate in DB to see
     // whether user is already logged in.
-    if( isset($_COOKIE['uniqueid']) ){
+    if( isset($_COOKIE['uniqueid']) ) {
         $uid = $_COOKIE['uniqueid'];
 
         // Note: column uniqueid should have index
@@ -41,7 +41,7 @@ $app->get('/check', function () use($app) {
 // GET: /login
 // show login page
 //
-$app->get('/login', function () use($app) {
+$app->get('/login', function () use($app, $twig) {
     $app->log->info( adt() . 'enter action /login');
 
     // check cookie, validate in DB to see
@@ -101,7 +101,8 @@ $app->get('/login', function () use($app) {
         $_SESSION['ct'] = time();
 
     $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];  // don't rely on user's ip; easy to fake
-    $app->render("login.php");
+    echo $twig->render("login.html");
+    exit;
 })->name('login');
 
 // POST: /login

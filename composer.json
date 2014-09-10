@@ -2,6 +2,7 @@
     "require": {
         "slim/slim": "*",
         "illuminate/database": "*",
-        "symfony/yaml" : "*"
+        "symfony/yaml" : "*",
+        "twig/twig" : "1.*"
     }
 }

@@ -36,3 +36,13 @@ $app->get('/', function () use($app) {
 $app->get('/error', function () use($app) {
     $app->render('error.php');
 });
+
+$app->get('/tt', function () use($twig) {
+    echo $twig->render('login.html');
+    exit;
+});
+
+$app->get('/twig', function () use($twig) {
+    echo $twig->render('twig_page.html', array('myTitle'=>"My Title123123"));
+    exit;
+});

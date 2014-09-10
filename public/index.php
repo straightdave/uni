@@ -30,6 +30,12 @@ $app->add(new \Slim\Middleware\SessionCookie(array(
     'cipher_mode' => MCRYPT_MODE_CBC
 )));
 
+$loader = new Twig_Loader_Filesystem('../app/templates');
+$twig = new Twig_Environment($loader, array(
+    'cache' => '../cache',
+    'auto_reload' => true
+));
+
 require_once '../app/models/UserLogin.php';
 require_once '../app/models/UserSession.php';
 require_once '../app/models/TempToken.php';
