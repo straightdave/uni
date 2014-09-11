@@ -100,9 +100,10 @@ $app->get('/login', function () use($app, $twig) {
     else
         $_SESSION['ct'] = time();
 
+    $app->log->info( "check in get-sess cid:" . $_SESSION['cid'] );
+
     $_SESSION['ip']  = $_SERVER['REMOTE_ADDR'];  // don't rely on user's ip; easy to fake
     echo $twig->render("login.html");
-    exit;
 })->name('login');
 
 // POST: /login
@@ -110,9 +111,14 @@ $app->get('/login', function () use($app, $twig) {
 //
 $app->post('/login', function () use($app) {
     $app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
+    
+    $app->log->info( "just enter post-sess cid:" );
+
     try {
         $u = $_POST['username'];
         $p = $_POST['password'];
+
+        $app->log->info( "after try - sess cid:" . $_SESSION['cid'] );
 
         $user = UserLogin::where('name', '=', $u);
         if( $user->count() != 1 ) {
@@ -122,6 +128,9 @@ $app->post('/login', function () use($app) {
         else
             $user = $user->first();
 
+        $app->log->info( "sess cid:" . $_SESSION['cid'] );
+
+
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
             $cookie_exp_time = 3600 * 2;
             $sess_exp_string = 'PT2H';
@@ -129,6 +138,8 @@ $app->post('/login', function () use($app) {
                 $cookie_exp_time = 3600 * 240;
                 $sess_exp_string = 'P10D';
             }
+  
+            $app->log->info( "sess cid:" . $_SESSION['cid'] );
 
             // check whether this user has logged in
             // with another UA
@@ -150,7 +161,7 @@ $app->post('/login', function () use($app) {
                 // clean dirty data
                 if( $sess->count() > 1 )
                     $sess->delete();
-
+                
                 // send name and password to app
                 $clientapp = App::where('id', '=', $_SESSION['cid'])->firstOrFail();
                 $resp_key = file_get_contents( $clientapp->cred_rec_url .'?name='.$u.'&pwd='.$p);

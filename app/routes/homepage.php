@@ -1,6 +1,9 @@
 <?php
 
-$app->get('/', function () use($app) {
+// GET: /
+// homepage; will check current state (cookies) on user side
+//
+$app->get('/', function () use($app, $twig) {
     try{
         if( isset($_COOKIE['uniqueid'])) {
             $uid = $_COOKIE['uniqueid'];
@@ -13,19 +16,23 @@ $app->get('/', function () use($app) {
                 $exp = new DateTime( $sess->exp );
                 if( $now < $exp ) {
                     $user = UserLogin::where('id', '=', $sess->uid)->firstOrFail();
-                    $app->render('homepage.php', array(
-                        'url' => $app->urlFor('logout') . '?t=' . $sess->token . '&ret=/',
-                        'name' => $user->name
-                    ));
+                    echo $twig->render('homepage.html', array( 
+                            'islogin' => true, 
+                            'name' => $user->name, 
+                            'url' => $app->urlFor('logout') . '?t=' . $sess->token . '&ret=/'  
+                         ));
+                    ob_flush();
+                    flush();
                     return;
                 }
             }
         }
 
-        $app->render('homepage.php', array(
-            'url' => $app->urlFor('login'),
-            'name' => ''
-        ));
+        echo $twig->render('homepage.html', array( 
+                'islogin' => false  
+             ));
+        ob_flush();
+        flush();
     }
     catch(Exception $e) {
         $app->flash( 'error', $e->getMessage() );
@@ -37,12 +44,8 @@ $app->get('/error', function () use($app) {
     $app->render('error.php');
 });
 
-$app->get('/tt', function () use($twig) {
-    echo $twig->render('login.html');
-    exit;
-});
+// for testing purpose
+$app->get('/twig', function () use($app, $twig) {
 
-$app->get('/twig', function () use($twig) {
-    echo $twig->render('twig_page.html', array('myTitle'=>"My Title123123"));
-    exit;
+    //exit; // note!! exit will make SESSIONs unavailable.s
 });

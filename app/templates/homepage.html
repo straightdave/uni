@@ -1,0 +1,36 @@
+{% extends "main.html" %}
+
+{% block title %}Uni - Home{% endblock %}
+
+
+{% block body %}
+<div class="jumbotron">
+  <div class="container">
+    <h1>Uni</h1>
+    
+    {% if not (islogin) %}   
+    <p>Sign in here, take you everywhere...</p>
+    <br/>
+    <p>
+      <a class="btn btn-primary btn-lg" role="button" href="/login">Sign in</a>    
+    </p>
+    {% endif %}
+ 
+    {% if islogin %}
+    <p>Welcome, {{ name }}</p>
+    <br/>
+    <p>
+      <a class="btn btn-primary btn-lg" role="button" href="{{ url }}">Sign off</a>    
+    </p>    
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
