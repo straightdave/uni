@@ -12,7 +12,7 @@ uni
 ## tech archi
 * routing based on Slim Framework (refer to http://docs.slimframework.com)
 * ORM: Eloquent (only use its models and data access approach; i hate its messy Migration)
-* currently no special templating tool used, using raw php+html as views
+* use Twig as view
 * use encrypted cookies (Slim internal middleware)
 
 ## Derived outputs
