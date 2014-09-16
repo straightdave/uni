@@ -43,6 +43,6 @@ require_once '../app/models/App.php';
 
 require_once '../app/helpers/helper.php';
 require_once '../app/routes/user.php';
-require_once '../app/routes/homepage.php';
+require_once '../app/routes/others.php';
 
 $app->run();
