@@ -111,7 +111,7 @@ $app->get('/login', function () use($app, $twig) {
 //
 $app->post('/login', function () use($app) {
     $app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
-    
+
     $app->log->info( "just enter post-sess cid:" );
 
     try {
@@ -138,7 +138,7 @@ $app->post('/login', function () use($app) {
                 $cookie_exp_time = 3600 * 240;
                 $sess_exp_string = 'P10D';
             }
-  
+
             $app->log->info( "sess cid:" . $_SESSION['cid'] );
 
             // check whether this user has logged in
@@ -161,7 +161,7 @@ $app->post('/login', function () use($app) {
                 // clean dirty data
                 if( $sess->count() > 1 )
                     $sess->delete();
-                
+
                 // send name and password to app
                 $clientapp = App::where('id', '=', $_SESSION['cid'])->firstOrFail();
                 $resp_key = file_get_contents( $clientapp->cred_rec_url .'?name='.$u.'&pwd='.$p);
@@ -337,8 +337,8 @@ $app->get('/showuser', function () use($app) {
     exit;
 });
 
-// for test purpose
+// give uni cred
 $app->get('/getcred', function () use($app) {
-    echo 'testkey';
+    echo 'testkey_from_uni_app';
     exit;
 });

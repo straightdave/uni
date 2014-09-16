@@ -1,7 +1,7 @@
 <?php
 
-// GET: /
-// homepage; will check current state (cookies) on user side
+// GET: / (HOMEPAGE of uni)
+// will check current state (cookies) on user side
 //
 $app->get('/', function () use($app, $twig) {
     try{
@@ -16,11 +16,13 @@ $app->get('/', function () use($app, $twig) {
                 $exp = new DateTime( $sess->exp );
                 if( $now < $exp ) {
                     $user = UserLogin::where('id', '=', $sess->uid)->firstOrFail();
-                    echo $twig->render('homepage.html', array( 
-                            'islogin' => true, 
-                            'name' => $user->name, 
-                            'url' => $app->urlFor('logout') . '?t=' . $sess->token . '&ret=/'  
+                    echo $twig->render('homepage.html', array(
+                            'islogin' => true,
+                            'name' => $user->name,
+                            'url' => $app->urlFor('logout') . '?t=' . $sess->token . '&ret=/'
                          ));
+                    // return to hardcoded '/' since this page itself proves clients are using uni homepage to use uni
+                    // so go back to uni homepage
                     ob_flush();
                     flush();
                     return;
@@ -28,8 +30,8 @@ $app->get('/', function () use($app, $twig) {
             }
         }
 
-        echo $twig->render('homepage.html', array( 
-                'islogin' => false  
+        echo $twig->render('homepage.html', array(
+                'islogin' => false
              ));
         ob_flush();
         flush();
@@ -42,10 +44,4 @@ $app->get('/', function () use($app, $twig) {
 
 $app->get('/error', function () use($app) {
     $app->render('error.php');
-});
-
-// for testing purpose
-$app->get('/twig', function () use($app, $twig) {
-
-    //exit; // note!! exit will make SESSIONs unavailable.s
 });

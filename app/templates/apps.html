@@ -1,0 +1,33 @@
+{% extends "main.html" %}
+
+{% block title %}Uni - Apps{% endblock %}
+
+{% block body %}
+<div class="container">
+<h3>Registered client apps</h3>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Cred receiving url</th>
+      <th>Secret</th>
+      <th>Available</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for app in apps %}
+    <tr>
+      <td>{{app.id}}</td>
+      <td>{{app.name}}</td>
+      <td>{{app.description}}</td>
+      <td>{{app.cred_rec_url}}</td>
+      <td>{{app.secret}}</td>
+      <td>{{app.available}}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
