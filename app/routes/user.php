@@ -4,7 +4,7 @@
 // checking status with cookies in UA
 // called by js (ajax)
 //
-$app->get('/check', function () use($app) {
+$app->get('/check/', function () use($app) {
     // get cookie, validate in DB to see
     // whether user is already logged in.
     if( isset($_COOKIE['uniqueid']) ) {
@@ -41,7 +41,7 @@ $app->get('/check', function () use($app) {
 // GET: /login
 // show login page
 //
-$app->get('/login', function () use($app, $twig) {
+$app->get('/login/', function () use($app, $twig) {
     $app->log->info( adt() . 'enter action /login');
 
     // check cookie, validate in DB to see
@@ -93,7 +93,7 @@ $app->get('/login', function () use($app, $twig) {
     if( hasSetGETParams( array('cid') ) )
         $_SESSION['cid'] = $_GET['cid'];
     else
-        $_SESSION['cid'] = 0;
+        $_SESSION['cid'] = 1;  // 1 for uni login page
 
     if( hasSetGETParams( array('ct') ) )
         $_SESSION['ct'] = $_GET['ct'];
@@ -109,7 +109,7 @@ $app->get('/login', function () use($app, $twig) {
 // POST: /login
 // proceed logging in process
 //
-$app->post('/login', function () use($app) {
+$app->post('/login/', function () use($app) {
     $app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
 
     $app->log->info( "just enter post-sess cid:" );
@@ -129,7 +129,6 @@ $app->post('/login', function () use($app) {
             $user = $user->first();
 
         $app->log->info( "sess cid:" . $_SESSION['cid'] );
-
 
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
             $cookie_exp_time = 3600 * 2;
@@ -200,7 +199,7 @@ $app->post('/login', function () use($app) {
 // app use temp token to trade for real token
 // via GET param 't' as temp token
 //
-$app->get('/gettoken', function () use($app) {
+$app->get('/gettoken/', function () use($app) {
     $app->log->info('enter action /gettoken');
 
     $app->response->headers->set('Content-Type', 'application/json');
@@ -235,14 +234,14 @@ $app->get('/gettoken', function () use($app) {
 // GET: /signup
 // show sign up page
 //
-$app->get('/signup', function () use($app) {
+$app->get('/signup/', function () use($app) {
     $app->render('signup.php');
 })->name('signup');
 
 // POST: /signup
 // proceed sign up requests
 //
-$app->post('/signup', function () use($app) {
+$app->post('/signup/', function () use($app) {
     try{
         $username = $_POST['username'];
         $password = $_POST['password'];
@@ -264,7 +263,7 @@ $app->post('/signup', function () use($app) {
 // GET: /logout
 // logout user
 //
-$app->get('/logout', function() use($app) {
+$app->get('/logout/', function() use($app) {
     $ret = '/';
     if( isset($_GET['ret']) ) {
         $ret = $_GET['ret'];
@@ -286,7 +285,7 @@ $app->get('/logout', function() use($app) {
 // GET: /validate
 //
 //
-$app->get('/validate', function () use($app) {
+$app->get('/validate/', function () use($app) {
     $app->response->headers->set('Content-Type', 'application/json');
     if( ! hasSetGETParams( array("t") ) )
         echo '{ "status" : "none" }';
@@ -322,7 +321,7 @@ $app->get('/validate', function () use($app) {
 });
 
 // for test purpose
-$app->get('/showsess', function () use($app) {
+$app->get('/showsess/', function () use($app) {
     $app->response->headers->set('Content-Type', 'application/json');
     $sess = \UserSession::all();
     echo $sess->toJson();
@@ -330,7 +329,7 @@ $app->get('/showsess', function () use($app) {
 });
 
 // for test purpose
-$app->get('/showuser', function () use($app) {
+$app->get('/showuser/', function () use($app) {
     $app->response->headers->set('Content-Type', 'application/json');
     $users = \UserLogin::all();
     echo $users->toJson();
@@ -338,7 +337,7 @@ $app->get('/showuser', function () use($app) {
 });
 
 // give uni cred
-$app->get('/getcred', function () use($app) {
+$app->get('/getcred/', function () use($app) {
     echo 'testkey_from_uni_app';
     exit;
 });

@@ -1,0 +1,37 @@
+{% extends "main.html" %}
+
+{% block title %}Register App{% endblock %}
+
+{% block body %}
+<div class="container">
+  <h3>Register new client app</h3>
+  <form role="form" method="post">
+    <div class="form-group">
+      <label for="appname">Name</label>
+      <input type="textbox" class="form-control" id="appname" name="appname" placeholder="App Name" required>
+    </div>
+    <div class="form-group">
+      <label for="appdesc">Description</label>
+      <input type="textbox" class="form-control" id="appdesc" name="appdesc" placeholder="App Description">
+    </div>
+    <div class="form-group">
+      <label for="appdomain">Domain</label>
+      <input type="textbox" class="form-control" id="appdomain" name="appdomain"  placeholder="App Domain">
+    </div>
+    <div class="form-group">
+      <label for="appcredurl">Cred Receive Url</label>
+      <input type="textbox" class="form-control" id="appcredurl" name="appcredurl" placeholder="Cred Receive Url" required>
+    </div>
+    <div class="form-group">
+      <label for="appadmin">Contact</label>
+      <input type="email" class="form-control" id="appadmin" name="appadmin" placeholder="Contact Admin Email" required>
+    </div>
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" name="appavailable">Available
+      </label>
+    </div>
+    <button type="submit" class="btn btn-default" style="margin-top:10px;margin-bottom: 20px;">Submit</button>
+  </form>
+</div>
+{% endblock %}
