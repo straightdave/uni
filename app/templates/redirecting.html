@@ -1,0 +1,18 @@
+{% extends "main.html" %}
+
+{% block extrameta %}
+<meta http-equiv="refresh" content="{{ sec }};URL='{{ target }}'" />
+{% endblock %}
+
+{% block title %}Redirecting...{% endblock %}
+
+{% block body %}
+
+<div class="container">
+  <h3>{{ message }}</h3>
+  <p>System is redirecting in {{ sec }} seconds... <br/>
+  If not, please click <a href="{{ target }}">here</a>
+  </p>
+</div>
+
+{% endblock %}

@@ -60,11 +60,13 @@ $app->get('/login/', function () use($app, $twig) {
 
             if( $now < $exp ) {
                 // if valid (not expired), show words then redirect back
-                $app->render('wait_to_redirect.php',
-                              array( 'msg' => 'You had alread logged in',
-                                     'url' => 'http://localhost/',
+                echo $twig->render('redirecting.html', array(
+                                     'message' => 'You had alread logged in',
+                                     'target' => '/',
                                      'sec' => 5 )
                             );
+                ob_flush();
+                flush();
                 return;
             }
         }
@@ -109,7 +111,7 @@ $app->get('/login/', function () use($app, $twig) {
 // POST: /login
 // proceed logging in process
 //
-$app->post('/login/', function () use($app) {
+$app->post('/login/', function () use($app, $twig) {
     $app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
 
     $app->log->info( "just enter post-sess cid:" );
@@ -148,12 +150,13 @@ $app->post('/login/', function () use($app) {
                 // set cookie in this UA and tell them to leave
                 $sess = $sess->first();
                 setcookie('uniqueid', $sess->id, time() + $cookie_exp_time);
-                $app->render('wait_to_redirect.php',
-                              array( 'msg' => 'You had alread logged in from other places',
-                                     //'url' => $app->request->headers->get('REFERER'),
-                                     'url' => $_SESSION['ret'],
+                echo $twig->render('redirecting.html', array(
+                                     'message' => 'You had alread logged in from other places',
+                                     'target' => $_SESSION['ret'],
                                      'sec' => 5 )
                             );
+                ob_flush();
+                flush();
                 return;
             }
             else {
