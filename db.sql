@@ -23,16 +23,16 @@ DROP TABLE IF EXISTS `app`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `app` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
-  `cred_rec_url` varchar(255) DEFAULT NULL,
-  `secret` varchar(255) DEFAULT NULL,
-  `contact` varchar(255) DEFAULT NULL,
+  `contact` varchar(255) NOT NULL,
   `domain` varchar(255) DEFAULT NULL,
-  `available` tinyint(1) DEFAULT NULL,
+  `secret` varchar(255) DEFAULT NULL,
+  `cred_rec_url` varchar(255) DEFAULT NULL,
+  `available` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,7 +41,7 @@ CREATE TABLE `app` (
 
 LOCK TABLES `app` WRITE;
 /*!40000 ALTER TABLE `app` DISABLE KEYS */;
-INSERT INTO `app` VALUES (0,'test',NULL,'http://127.0.0.1/getcred',NULL,NULL,NULL,1),(1,'SineMedia',NULL,'http://10.172.44.101:8000/userinfo/',NULL,NULL,NULL,1);
+INSERT INTO `app` VALUES (1,'uni',NULL,'admin@uni.com',NULL,NULL,'http://localhost/getcred',1),(2,'SineMedia',NULL,'admin@sinemedia.com',NULL,NULL,'http://10.172.44.101:8000/userinfo/',1);
 /*!40000 ALTER TABLE `app` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -93,7 +93,7 @@ CREATE TABLE `user_login` (
 
 LOCK TABLES `user_login` WRITE;
 /*!40000 ALTER TABLE `user_login` DISABLE KEYS */;
-INSERT INTO `user_login` VALUES (4,'dave3','a072e8b21e25343bea6e6a6b1115875f','1407463649'),(5,'dave','e934e51251502527ea082ea7f1f29e26','1407463751'),(14,'zhihu','86d8648880b3b105146c801c12bee717','1407467455'),(15,'weizhen','a5ddea4196144dda02d0a55f16ff3e3d','1407467465'),(17,'dingding','5c0b6f7480ac4e20d5aa2b2df675c08f','1407483801'),(18,'uniuser','faf8274e8e623c70f202a6a80d318199','1407650068');
+INSERT INTO `user_login` VALUES (5,'dave','e934e51251502527ea082ea7f1f29e26','1407463751');
 /*!40000 ALTER TABLE `user_login` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -115,7 +115,7 @@ CREATE TABLE `user_session` (
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`),
   CONSTRAINT `user_session_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `user_login` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -136,4 +136,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-09-05 14:45:22
+-- Dump completed on 2014-09-17 10:20:34
