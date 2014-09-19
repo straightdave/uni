@@ -13,6 +13,7 @@ uni
 * routing based on Slim Framework (refer to http://docs.slimframework.com)
 * ORM: Eloquent (only use its models and data access approach; i hate its messy Migration)
 * use Twig as view
+* Bootstrap
 * use encrypted cookies (Slim internal middleware)
 
 ## Derived outputs
