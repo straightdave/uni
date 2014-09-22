@@ -23,6 +23,10 @@ uni
 ## Status
 this is in the progress and any help is much welcomed
 
+## TODO
+* all pages around Apps
+* user info table and model
+
 ## how to install this
 1. git clone to your local
 2. restore mysql file : db.sql to database 'uni_dev' or other you like
