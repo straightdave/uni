@@ -32,7 +32,7 @@ CREATE TABLE `app` (
   `cred_rec_url` varchar(255) DEFAULT NULL,
   `available` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,7 +41,7 @@ CREATE TABLE `app` (
 
 LOCK TABLES `app` WRITE;
 /*!40000 ALTER TABLE `app` DISABLE KEYS */;
-INSERT INTO `app` VALUES (1,'uni',NULL,'admin@uni.com',NULL,NULL,'http://localhost/getcred',1),(2,'SineMedia',NULL,'admin@sinemedia.com',NULL,NULL,'http://10.172.44.101:8000/userinfo/',1);
+INSERT INTO `app` VALUES (1,'uni',NULL,'admin@uni.com',NULL,NULL,'http://localhost/getcred',1),(2,'SineMedia',NULL,'admin@sinemedia.com',NULL,NULL,'http://10.172.44.101:8000/userinfo/',1),(3,'test','test site','test@test.test',NULL,'123123','test.com/getcred',0);
 /*!40000 ALTER TABLE `app` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -71,6 +71,33 @@ LOCK TABLES `temp_token` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `user_info`
+--
+
+DROP TABLE IF EXISTS `user_info`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_info` (
+  `uid` int(11) NOT NULL,
+  `nickname` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `role` varchar(255) DEFAULT 'member',
+  UNIQUE KEY `uid` (`uid`),
+  CONSTRAINT `user_info_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `user_login` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_info`
+--
+
+LOCK TABLES `user_info` WRITE;
+/*!40000 ALTER TABLE `user_info` DISABLE KEYS */;
+INSERT INTO `user_info` VALUES (5,'StraightDave',NULL,'super');
+/*!40000 ALTER TABLE `user_info` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `user_login`
 --
 
@@ -84,7 +111,7 @@ CREATE TABLE `user_login` (
   `salt` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -115,7 +142,7 @@ CREATE TABLE `user_session` (
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`),
   CONSTRAINT `user_session_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `user_login` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -136,4 +163,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-09-17 10:20:34
+-- Dump completed on 2014-09-22 15:46:21

@@ -1,7 +1,8 @@
 <?php
 
-$allow_role = function ($role) use ($twig) {
-    return function () use ($role, $twig) {
+$allow_role = function () use ($twig, $app) {
+    $role_list = func_get_args();
+    return function () use ($role_list, $twig, $app) {
         $valid = false;
 
         if( isset($_COOKIE['uniqueid']) ) {
@@ -15,17 +16,22 @@ $allow_role = function ($role) use ($twig) {
 
                 if( $now < $exp ) {
                     // if user is valid and check the right role
-                    $user = UserLogin::find($sess->uid);
-
-                    if($user->name == 'dave') // TODO: currently only 'dave'
+                    $user = UserInfo::where('uid', '=', $sess->uid)->firstOrFail();
+                    if(in_array($user->role, $role_list))
                         $valid = true;
                 }
             }
         }
 
         if(!$valid) {
+            $msg = 'You should login as ';
+            foreach($role_list as $r) {
+                $msg = $msg . $r . '/';
+            }
+            $msg = rtrim($msg, '/');
+
             echo $twig->render('redirecting.html', array(
-                'message' => 'You should login as ' . $role,
+                'message' => $msg,
                 'target' => '/login',
                 'sec' => 5
             ));
@@ -37,7 +43,7 @@ $allow_role = function ($role) use ($twig) {
 // GET: /apps
 // show all registered client apps.
 //
-$app->get('/apps/', $allow_role('admin'), function () use ($twig) {
+$app->get('/apps/', $allow_role('admin','super'), function () use ($twig) {
     $clientapps = App::all();
     echo $twig->render('apps.html', array('apps' => $clientapps));
     ob_flush();
@@ -47,7 +53,7 @@ $app->get('/apps/', $allow_role('admin'), function () use ($twig) {
 // GET: /apps/register
 // add a new client app into uni
 //
-$app->get('/apps/register/', $allow_role('admin'), function () use ($twig) {
+$app->get('/apps/register/', $allow_role('super','admin'), function () use ($twig) {
     echo $twig->render('apps_new.html');
     ob_flush();
     flush();

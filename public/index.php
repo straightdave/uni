@@ -37,6 +37,7 @@ $twig = new Twig_Environment($loader, array(
 ));
 
 require_once '../app/models/UserLogin.php';
+require_once '../app/models/UserInfo.php';
 require_once '../app/models/UserSession.php';
 require_once '../app/models/TempToken.php';
 require_once '../app/models/App.php';
