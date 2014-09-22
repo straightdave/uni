@@ -1,0 +1,54 @@
+{% extends "main.html" %}
+
+{% block title %}Register{% endblock %}
+{% block extracss %}
+<style rel="stylesheet" type="text/css">
+body {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #eee;
+}
+
+.form-register {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+
+.form-register .form-register-heading,
+.form-register .checkbox {
+  margin-bottom: 10px;
+}
+
+.form-register .form-control {
+  margin-bottom: 5px;
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.form-register .form-control:focus {
+  z-index: 2;
+}
+
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+  <form class="form-register" role="form" method="post">
+    <h2 class="form-register-heading">Register new user</h2>
+    <input name="username" type="username" class="form-control" placeholder="Name" required autofocus>
+    <input name="password" type="password" class="form-control" placeholder="Password" required>
+    <input name="confirm_password" type="password" class="form-control" placeholder="Confirm" required>
+    <input name="email" type="email" class="form-control" placeholder="Email" required>
+    <input name="nickname" type="username" class="form-control" placeholder="Nickname (Optional)">
+    <br/>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
+  </form>
+</div>
+{% endblock %}

@@ -114,23 +114,19 @@ $app->get('/login/', function () use($app, $twig) {
 $app->post('/login/', function () use($app, $twig) {
     $app->response->headers->set('P3P', 'CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"');
 
-    $app->log->info( "just enter post-sess cid:" );
-
     try {
         $u = $_POST['username'];
         $p = $_POST['password'];
 
-        $app->log->info( "after try - sess cid:" . $_SESSION['cid'] );
-
         $user = UserLogin::where('name', '=', $u);
         if( $user->count() != 1 ) {
-            $app->render('login.php', array( 'errorMessage' => 'Wrong login name' ));
+            echo $twig->render('login.html');
+            ob_flush();
+            flush();
             return;
         }
         else
             $user = $user->first();
-
-        $app->log->info( "sess cid:" . $_SESSION['cid'] );
 
         if( isset($user) and $user->password === md5($p . $user->salt) ) {
             $cookie_exp_time = 3600 * 2;
@@ -139,8 +135,6 @@ $app->post('/login/', function () use($app, $twig) {
                 $cookie_exp_time = 3600 * 240;
                 $sess_exp_string = 'P10D';
             }
-
-            $app->log->info( "sess cid:" . $_SESSION['cid'] );
 
             // check whether this user has logged in
             // with another UA
@@ -189,8 +183,11 @@ $app->post('/login/', function () use($app, $twig) {
                 $app->response->redirect( $_SESSION['ret'] . '?key='.$resp_key );
             }
         }
-        else
-            $app->render('login.php', array( 'errorMessage' => 'Wrong password' ));
+        else {
+            echo $twig->render('login.html');
+            ob_flush();
+            flush();
+        }
     }
     catch(Exception $e) {
         $app->flash( 'error', $e->getMessage() );
@@ -237,14 +234,16 @@ $app->get('/gettoken/', function () use($app) {
 // GET: /signup
 // show sign up page
 //
-$app->get('/signup/', function () use($app) {
-    $app->render('signup.php');
-})->name('signup');
+$app->get('/register/', function () use($twig) {
+    echo $twig->render('user_new.html');
+    ob_flush();
+    flush();
+})->name('register');
 
 // POST: /signup
 // proceed sign up requests
 //
-$app->post('/signup/', function () use($app) {
+$app->post('/register/', function () use($app, $twig) {
     try{
         $username = $_POST['username'];
         $password = $_POST['password'];
@@ -254,8 +253,20 @@ $app->post('/signup/', function () use($app) {
         $newlogin->password = md5($password . ($newlogin->salt));
         $newlogin->save();
         $id = $newlogin->id;
-        echo "New user login added: id = $id";
-        exit;
+
+        $newinfo = new UserInfo;
+        $newinfo->uid = $id;
+        $newinfo->nickname = $_POST['nickname'];
+        $newinfo->email = $_POST['email'];
+        $newinfo->save();
+
+        echo $twig->render('redirecting.html', array(
+            'message' => 'New user registered, ID = ' . $id,
+            'target' => '/login',
+            'sec' => 5
+        ));
+        ob_flush();
+        flush();;
     }
     catch(Exception $e) {
         $app->flash('error', $e->getMessage());
